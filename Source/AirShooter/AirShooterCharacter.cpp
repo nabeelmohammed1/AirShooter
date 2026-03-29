@@ -69,6 +69,19 @@ void AAirShooterCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInpu
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
 
+	if(AbilitySystemComponent && PlayerInputComponent)
+	{
+		const FGameplayAbilityInputBinds Binds(
+			"Confirm", // Confirm target
+			"Cancel",  // Cancel target
+			"EAirAbilityInputID", // Enum name
+			static_cast<int32>(EAirAbilityInputID::Confirm), // Enum value for "unbound"
+			static_cast<int32>(EAirAbilityInputID::Cancel) // Enum value for "movement abilities"
+		);
+
+		AbilitySystemComponent->BindAbilityActivationToInputComponent(PlayerInputComponent, Binds);
+	}
+
 }
 
 void AAirShooterCharacter::PossessedBy(AController* NewController)
@@ -76,7 +89,8 @@ void AAirShooterCharacter::PossessedBy(AController* NewController)
 	Super::PossessedBy(NewController);
 	if (AbilitySystemComponent)
 	{
-		AbilitySystemComponent->RefreshAbilityActorInfo();
+		AbilitySystemComponent->InitAbilityActorInfo(this,this);
+		GrantStartingAbilities();
 	}
 }
 
@@ -94,25 +108,28 @@ UAbilitySystemComponent* AAirShooterCharacter::GetAbilitySystemComponent() const
 	return AbilitySystemComponent;
 }
 
-TArray<FGameplayAbilitySpecHandle> AAirShooterCharacter::GrantAbilities(TArray<TSubclassOf<UGameplayAbility>> AbilitiesToGrant)
+
+void AAirShooterCharacter::GrantStartingAbilities()
 {
-	if(!AbilitySystemComponent || !HasAuthority())
-	{
-		return TArray<FGameplayAbilitySpecHandle>();
-	}
+	if (!HasAuthority() || !AbilitySystemComponent) return;
 
-	TArray<FGameplayAbilitySpecHandle> GrantedHandles;
-
-	for (TSubclassOf<UGameplayAbility> Ability : AbilitiesToGrant)
+	for (const FStartingAbilityInfo& AbilityInfo : StartingAbilities)
 	{
-		if (Ability)
+		if (AbilityInfo.AbilityClass)
 		{
-			FGameplayAbilitySpecHandle Handle = AbilitySystemComponent->GiveAbility(FGameplayAbilitySpec(Ability));
-			GrantedHandles.Add(Handle);
+			GrantAbilityWithInput(AbilityInfo.AbilityClass, AbilityInfo.InputID);
 		}
 	}
-	SendAbilitiesChangedEvent();
-	return GrantedHandles;
+}
+
+void AAirShooterCharacter::GrantAbilityWithInput(TSubclassOf<UGameplayAbility> Ability, EAirAbilityInputID InputID)
+{
+	if (!AbilitySystemComponent || !HasAuthority() || !Ability) return;
+
+	FGameplayAbilitySpec Spec(Ability);
+	Spec.InputID = static_cast<int32>(InputID); // This is the missing link!
+
+	AbilitySystemComponent->GiveAbility(Spec);
 }
 
 

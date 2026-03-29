@@ -8,6 +8,29 @@
 #include "AbilitySystemInterface.h"
 #include "AirShooterCharacter.generated.h"
 
+UENUM(BlueprintType)
+enum class EAirAbilityInputID : uint8
+{
+	None,
+	Confirm,
+	Cancel,
+	Grapple,
+	Blink,
+	Clone,
+	Ability4,
+	Ability5
+};
+
+USTRUCT(BlueprintType)
+struct FStartingAbilityInfo
+{
+	GENERATED_BODY()
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	TSubclassOf<UGameplayAbility> AbilityClass;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	EAirAbilityInputID InputID = EAirAbilityInputID::None;
+};
+
 class UAbilitySystemComponent;
 
 UCLASS()
@@ -31,7 +54,7 @@ protected:
 	EGameplayEffectReplicationMode ASCReplicationMode = EGameplayEffectReplicationMode::Mixed;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "GAS")
-	TArray<TSubclassOf<UGameplayAbility>> StartingAbilities;
+	TArray<FStartingAbilityInfo> StartingAbilities;
 
 
 protected:
@@ -52,7 +75,10 @@ public:
 	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
 
 	UFUNCTION(BlueprintCallable, Category = "GAS")
-	TArray<FGameplayAbilitySpecHandle> GrantAbilities(TArray<TSubclassOf<UGameplayAbility>> AbilitiesToGrant);
+	void GrantStartingAbilities();
+
+	UFUNCTION(BlueprintCallable, Category = "GAS")
+	void GrantAbilityWithInput(TSubclassOf<UGameplayAbility> Ability, EAirAbilityInputID InputID);
 
 	UFUNCTION(BlueprintCallable, Category = "GAS")
 	void RemoveAbilities(TArray<FGameplayAbilitySpecHandle> AbilityHandlesToRemove);
