@@ -17,8 +17,10 @@ enum class EAirAbilityInputID : uint8
 	Grapple,
 	Blink,
 	Clone,
-	Ability4,
-	Ability5
+	Jump,
+	Sprint,
+	Slide,
+	WallRun,
 };
 
 USTRUCT(BlueprintType)

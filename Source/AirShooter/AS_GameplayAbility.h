@@ -4,6 +4,8 @@
 
 #include "CoreMinimal.h"
 #include "Abilities/GameplayAbility.h"
+#include "GameFramework/CharacterMovementComponent.h"
+#include "AirAttributes.h"
 #include "AS_GameplayAbility.generated.h"
 
 /**
@@ -18,4 +20,12 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "UI")
 	bool ShouldShowInAbilitiesBar = false;
 
+
+protected:
+	UFUNCTION(BlueprintPure, Category = "Ability|Helpers")
+	UCharacterMovementComponent* GetCharacterMovement() const;
+
+	UFUNCTION(BlueprintPure, Category = "Ability|Helpers")
+	float GetAttributeValue(FGameplayAttribute Attribute) const;
 };
+
